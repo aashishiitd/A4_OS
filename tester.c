@@ -222,19 +222,90 @@ void preOrder( treeNode* root ){
 }
 
 
-int main(){
-
-    //some insert commands
-    avlTree* tree = (avlTree*)malloc(sizeof(avlTree));
-    
-    int arr[7] = {4,3,5,2,6,1,7};
-    for(int i =0; i<7; i++){
-        tree->root = insert(arr[i], tree->root);
+bool isAVLbalanced(treeNode* node) {
+    if (node == NULL) {
+        return true;
     }
+
+    int balance = balance_factor(node);
+    if (balance < -1 || balance > 1) {
+        return false;
+    }
+
+    return isAVLbalanced(node->leftChild) && isAVLbalanced(node->rightChild);
+}
+
+
+int main() {
+    avlTree* tree = (avlTree*)malloc(sizeof(avlTree));
+    bool all_tests_passed = true;
+
+    // Test 1: Insertion and balancing test
+    int insert_values[] = {5, 3, 8, 1, 4, 7, 9, 2, 6};
+    for (int i = 0; i < sizeof(insert_values) / sizeof(insert_values[0]); i++) {
+        tree->root = insert(insert_values[i], tree->root);
+        printf("Inserting %d: In-order: ", insert_values[i]);
+        inOrder(tree->root);
+        printf("\n");
+
+        // Check if the tree is balanced after each insertion
+        if (!isAVLbalanced(tree->root)) {
+            all_tests_passed = false;
+            printf("Test 1: Balancing test failed after inserting %d.\n", insert_values[i]);
+        }
+    }
+
+    // Test 2: Search test
+    int search_values[] = {4, 6};
+    for (int i = 0; i < sizeof(search_values) / sizeof(search_values[0]); i++) {
+        bool is_present = contains(search_values[i], tree->root);
+        if (is_present) {
+            printf("%d is present in the tree.\n", search_values[i]);
+        } else {
+            all_tests_passed = false;
+            printf("%d is not present in the tree.\n", search_values[i]);
+        }
+    }
+
+    // Test 3: Deletion and balancing test
+    int delete_values[] = {3, 8};
+    for (int i = 0; i < sizeof(delete_values) / sizeof(delete_values[0]); i++) {
+        tree->root = delete(delete_values[i], tree->root);
+        printf("Deleting %d: In-order: ", delete_values[i]);
+        inOrder(tree->root);
+        printf("\n");
+
+        // Check if the tree is balanced after each deletion
+        if (!isAVLbalanced(tree->root)) {
+            all_tests_passed = false;
+            printf("Test 3: Balancing test failed after deleting %d.\n", delete_values[i]);
+        }
+    }
+
+    // Test 4: Complex test - Delete the root
+    int root_value = 5;
+    tree->root = delete(root_value, tree->root);
+    printf("Deleting the root (%d): In-order: ", root_value);
     inOrder(tree->root);
     printf("\n");
-    preOrder(tree->root);
-    printf("\n");
-    return 1;
 
+    // Check if the tree is balanced after the root deletion
+    if (!isAVLbalanced(tree->root)) {
+        all_tests_passed = false;
+        printf("Test 4: Balancing test failed after deleting the root.\n");
+    }
+
+    if (all_tests_passed) {
+        printf("All test cases passed.\n");
+    } else {
+        printf("Some test cases failed.\n");
+    }
+
+    return 0;
 }
+
+
+
+
+
+
