@@ -24,6 +24,17 @@ int height(treeNode* node) {
     return node->height;
 }
 
+// Function to update the height of a node
+void updateHeight( treeNode* node) {
+    int leftHeight = height(node->leftChild);
+    int rightHeight = height(node->rightChild);
+    node->height = 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
+}
+
+int balance_factor(treeNode* node){
+    return height(node->leftChild) - height(node->rightChild);
+}
+
 treeNode* RotateLeft(treeNode* node){
     
     treeNode* grandParent = node->parent;
@@ -41,8 +52,9 @@ treeNode* RotateLeft(treeNode* node){
             grandParent->rightChild = parent;
         }    
     }
-    parent->leftChild->height--;
-    parent->height = max(height(parent->rightChild),height(parent->leftChild))+1;
+    treeNode* temp = parent->leftChild;
+    updateHeight(temp);
+    updateHeight(parent);
     return parent;
        
 }
@@ -64,8 +76,9 @@ treeNode* RotateRight(treeNode* node){
             grandParent->rightChild = parent;
         }    
     }
-    parent->rightChild->height--;
-    parent->height = max(height(parent->rightChild),height(parent->leftChild))+1;
+    treeNode* temp = parent->rightChild;
+    updateHeight(temp);
+    updateHeight(parent);
     return parent;    
     
 }
@@ -81,17 +94,6 @@ treeNode* newTreeNode( int value ){
     return node;
 }
 
-
-// Function to update the height of a node
-void updateHeight( treeNode* node) {
-    int leftHeight = height(node->leftChild);
-    int rightHeight = height(node->rightChild);
-    node->height = 1 + (leftHeight > rightHeight ? leftHeight : rightHeight);
-}
-
-int balance_factor(treeNode* node){
-    return height(node->leftChild) - height(node->rightChild);
-}
 
 bool contains( int value, treeNode* root ){
     if(root == NULL) return false;
@@ -114,25 +116,56 @@ void swap(treeNode* node1, treeNode* node2){
     node1->value = node2->value;
     node2->value = temp;
 }
+
+treeNode* swapForDeletion( treeNode* to_del){
+
+    treeNode* swapper = to_del;
+    //already covered that there is atleast one child!
+
+    //Case 1: Only leftChild
+    if(to_del->leftChild != NULL && to_del->rightChild == NULL){
+        swapper = swapper->leftChild;
+        return swapForDeletion(swapper);
+    }
+    //Case 2: Only RightChild
+    if(to_del->rightChild != NULL && to_del->leftChild == NULL){
+        swapper = swapper->rightChild;
+        return swapForDeletion(swapper);
+    }
+
+    //Case 3: Both Children
+    if(to_del->rightChild != NULL && to_del->leftChild != NULL){
+        //go to right && then go as left as possible
+        //then call swap for deletion!
+        swapper = swapper->rightChild;
+        while(swapper->leftChild != NULL){
+            swapper = swapper->leftChild;
+        }
+        return swapForDeletion(swapper);
+    }
+    return swapper;
+
+}
+
 treeNode* delete( int value, treeNode* root){
     
     if(!contains(value, root)) return root; //value wasn't in tree. No deletion necessary!!
     
     //height also update
-    treeNode* to_del = give_node(value, root);
-
     //find the element to be deleted! using recursion.
+    treeNode* to_del = give_node(value, root);
+    
     //swap until element is a leaf node
-    while(to_del->leftChild != NULL || to_del->rightChild != NULL){
-        if(to_del->leftChild != NULL){
-            swap(to_del, to_del->leftChild);
-            to_del = to_del->leftChild;
-        }
-        else{
-            swap(to_del, to_del->rightChild);
-            to_del = to_del->rightChild;
-        }
+    //need to find element to swap
+    treeNode* to_swap = to_del; 
+    
+    while(to_swap-> leftChild != NULL || to_swap->rightChild != NULL){
+        to_swap = swapForDeletion(to_swap );
+        swap(to_del, to_swap);
     }
+
+    to_del = to_swap;
+
     //now to_del is a leaf node. Delete it.
     if(to_del->parent->leftChild == to_del){
         to_del->parent->leftChild = NULL;
@@ -140,26 +173,36 @@ treeNode* delete( int value, treeNode* root){
     else{
         to_del->parent->rightChild = NULL;
     }
+    
     //update height of all nodes in the path
     treeNode* temp = to_del->parent;
     while(temp != NULL){
         updateHeight(temp);
         temp = temp->parent;
     }
+
     //rotate if necessary
-    if(balance_factor(to_del->parent) > 1 && balance_factor(to_del->parent->leftChild) >=0){
-        return RotateRight(to_del->parent);
-    }
-    if(balance_factor(to_del->parent) < -1 && balance_factor(to_del->parent->rightChild) <=0){
-        return RotateLeft(to_del->parent);
-    }
-    if(balance_factor(to_del->parent) > 1 && balance_factor(to_del->parent->leftChild) < 0){
-        to_del->parent->leftChild = RotateLeft(to_del->parent->leftChild);
-        return RotateRight(to_del->parent);
-    }
-    if(balance_factor(to_del->parent) < -1 && balance_factor(to_del->parent->rightChild) > 0){
-        to_del->parent->rightChild = RotateRight(to_del->parent->rightChild);
-        return RotateLeft(to_del->parent);
+    treeNode* parent = to_del->parent;
+    while(parent != NULL){
+        if(balance_factor(parent) > 1 && balance_factor(parent->leftChild) >=0){
+            parent = RotateRight(parent);
+            break;
+        }
+        if(balance_factor(parent) < -1 && balance_factor(parent->rightChild) <=0){
+            parent = RotateLeft(parent);
+            break;
+        }
+        if(balance_factor(parent) > 1 && balance_factor(parent->leftChild) < 0){
+            parent->leftChild = RotateLeft(parent->leftChild);
+            parent = RotateRight(parent);
+            break;
+        }
+        if(balance_factor(parent) < -1 && balance_factor(parent->rightChild) > 0){
+            parent->rightChild = RotateRight(parent->rightChild);
+            parent = RotateLeft(parent);
+            break;
+        }
+        parent = parent->parent;
     }
     //free(to_del);
     return root;
