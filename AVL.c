@@ -234,13 +234,6 @@ int main(){
     printf("\n");
     preOrder(tree->root);
     printf("\n");
-    int maxWidth = findMaxWidth(tree->root);
-
-    printf("Vertical representation of the tree:\n");
-    for (int level = 0; level < maxWidth; level++) {
-        printVerticalTree(tree->root, level, maxWidth);
-        printf("\n");
-    }
     return 1;
 
 }
