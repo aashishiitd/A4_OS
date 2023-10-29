@@ -1,6 +1,10 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdbool.h>
+#include<string.h>
+#include<pthread.h>
+
+#define MAXTHREADS 200
 
 typedef struct avlTree{
     struct treeNode* root;
@@ -14,17 +18,18 @@ typedef struct treeNode{
     int value;
 } treeNode;
 
+//global declaration of tree!
+avlTree* tree;
+
 int max(int a, int b){
     return a>b?a:b;
 }
 
-// Function to get the height of a node
 int height(treeNode* node) {
     if (node == NULL) return 0;
     return node->height;
 }
 
-// Function to update the height of a node
 void updateHeight( treeNode* node) {
     int leftHeight = height(node->leftChild);
     int rightHeight = height(node->rightChild);
@@ -84,7 +89,6 @@ treeNode* RotateRight(treeNode* node){
     
 }
 
-//Declaring a new treeNode
 treeNode* newTreeNode( int value ){
     struct treeNode* node = (treeNode*)malloc(sizeof(treeNode));
     node->value = value;
@@ -248,7 +252,6 @@ treeNode* insert( int value, treeNode* root){
          
 }
 
-
 void inOrder( treeNode* root ){
     if(root != NULL){
         inOrder(root->leftChild);
@@ -265,19 +268,83 @@ void preOrder( treeNode* root ){
     }
 }
 
-int main(){
+int main() {
+    int maxLines = 200; // Maximum number of lines you want to read
+    char lines[maxLines][32]; // Assuming each line can have up to 31 characters (plus the null-terminator)
 
-    //some insert commands
-    avlTree* tree = (avlTree*)malloc(sizeof(avlTree));
-    
-    int arr[7] = {4,3,5,2,6,1,7};
-    for(int i =0; i<7; i++){
-        tree->root = insert(arr[i], tree->root);
+    //Initialization
+    int commandArray[maxLines];
+    int commandValue[maxLines];
+    for(int i =0; i<maxLines; i++){
+        commandArray[i] = -1; 
+        commandValue[i] = -1;
     }
-    inOrder(tree->root);
-    printf("\n");
-    preOrder(tree->root);
-    printf("\n");
-    return 1;
 
+    /*
+        -1 -> Empty after that
+        1 -> insert command
+        2 -> delete command
+        3 -> contains command
+        4 -> inorder command
+    */
+
+    int lineCount = 0;
+    while (lineCount < maxLines && fgets(lines[lineCount], sizeof(lines[0]), stdin)) {
+        // Remove the newline character at the end of the line
+        lines[lineCount][strcspn(lines[lineCount], "\n")] = '\0';
+        if(!strcmp(lines[lineCount],"exit"))break;
+        lineCount++;
+    }
+
+    for (int i = 0; i < lineCount; i++) {
+        int value;
+        if (sscanf(lines[i], "insert %d", &value) == 1) {
+            commandArray[i] = 1;
+            commandValue[i] = value;
+        } else if(sscanf(lines[i], "delete %d", &value) == 1){
+            commandArray[i] = 2;
+            commandValue[i] = value;
+        } else if(sscanf(lines[i], "contains %d", &value) == 1){
+            commandArray[i] = 3;
+            commandValue[i] = value;
+        } else if(!strcmp("in order", lines[i])){
+            commandArray[i] = 4;
+        }
+        else{
+            printf("Invalid Command\n");
+        }
+    }
+    //Input taken  
+
+    //Now make threads for all above commands!
+    //We need to make function pointers for each of insert, 
+    pthread_t thread_id[MAXTHREADS]; // Thread identifier
+    
+    for(int i =0; i<lineCount; i++){
+        // Create a new thread and pass the argument
+        //Chnage the arguments and function pointers after making them
+        if(commandArray[i] == 1 ){
+            pthread_create(&thread_id[i], NULL, insert, &commandValue[i]);
+        }
+        else if(commandArray[i] == 2 ){
+            pthread_create(&thread_id[i], NULL, delete, &commandValue[i]);
+        }
+        else if(commandArray[i] == 3 ){
+            pthread_create(&thread_id[i], NULL, contains, &commandValue[i]);
+        }
+        else if(commandArray[i] == 4 ){
+            pthread_create(&thread_id[i], NULL, inOrder, NULL);
+        }
+    
+    }
+        //Need to Wait for all the threads to finish
+        //Use pthread_join to do this!
+        
+        //Maintain an output array to print output to console at the very end.
+
+        //
+        
+    
+    return 0;
 }
+
