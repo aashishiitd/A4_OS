@@ -14,18 +14,6 @@ typedef struct treeNode{
     int value;
 } treeNode;
 
-//Declaring a new treeNode
-treeNode* newTreeNode( int value ){
-    struct treeNode* node = (treeNode*)malloc(sizeof(treeNode));
-    node->value = value;
-    node->parent = NULL;
-    node->leftChild = NULL;
-    node->rightChild = NULL;
-    node->height = 1;
-
-    return node;
-}
-
 int max(int a, int b){
     return a>b?a:b;
 }
@@ -64,6 +52,7 @@ treeNode* RotateLeft(treeNode* node){
             grandParent->rightChild = parent;
         }    
     }
+    else parent->parent = NULL;
     treeNode* temp = parent->leftChild;
     updateHeight(temp);
     updateHeight(parent);
@@ -88,11 +77,23 @@ treeNode* RotateRight(treeNode* node){
             grandParent->rightChild = parent;
         }    
     }
+    else parent->parent = NULL;
     treeNode* temp = parent->rightChild;
     updateHeight(temp);
     updateHeight(parent);
     return parent;    
     
+}
+//Declaring a new treeNode
+treeNode* newTreeNode( int value ){
+    struct treeNode* node = (treeNode*)malloc(sizeof(treeNode));
+    node->value = value;
+    node->parent = NULL;
+    node->leftChild = NULL;
+    node->rightChild = NULL;
+    node->height = 1;
+
+    return node;
 }
 
 bool contains( int value, treeNode* root ){
@@ -111,7 +112,6 @@ treeNode* give_node( int value, treeNode* root ){
     return give_node(value, root->leftChild);
 
 }
-
 void swap(treeNode* node1, treeNode* node2){
     int temp = node1->value;
     node1->value = node2->value;
@@ -225,28 +225,28 @@ treeNode* insert( int value, treeNode* root){
         root->rightChild = insert(value, root->rightChild);
         root->rightChild->parent = root;
     }
-    
+
     updateHeight(root);
-    
-    
+
     if(balance_factor(root) > 1 && balance_factor(root->leftChild) >=0){
         return RotateRight(root);
     }
-    if(balance_factor(root) < -1 && balance_factor(root->rightChild) <=0){
+    else if(balance_factor(root) < -1 && balance_factor(root->rightChild) <=0){
         return RotateLeft(root);
     }
-    if(balance_factor(root) > 1 && balance_factor(root->leftChild) < 0){
-        root->leftChild = RotateLeft(root->leftChild);
-        return RotateRight(root);
+    else if(balance_factor(root) > 1 && balance_factor(root->leftChild) < 0){
+         root->leftChild = RotateLeft(root->leftChild);
+         return RotateRight(root);
     }
-    if(balance_factor(root) < -1 && balance_factor(root->rightChild) > 0){
-        root->rightChild = RotateRight(root->rightChild);
-        return RotateLeft(root);
-    }
+    else if(balance_factor(root) < -1 && balance_factor(root->rightChild) > 0){
+         root->rightChild = RotateRight(root->rightChild);
+         return RotateLeft(root);
+    }   
 
     return root;
          
 }
+
 
 void inOrder( treeNode* root ){
     if(root != NULL){

@@ -264,8 +264,7 @@ void preOrder( treeNode* root ){
     }
 }
 
-
-bool isAVLbalanced(treeNode* node) {
+bool isBalanced(treeNode* node) {
     if (node == NULL) {
         return true;
     }
@@ -275,78 +274,137 @@ bool isAVLbalanced(treeNode* node) {
         return false;
     }
 
-    return isAVLbalanced(node->leftChild) && isAVLbalanced(node->rightChild);
+    return isBalanced(node->leftChild) && isBalanced(node->rightChild);
 }
 
+// Function to find the minimum and maximum horizontal distance
+void findMinMaxHD(struct treeNode *root, int *minHD, int *maxHD, int hd) {
+    if (root == NULL)
+        return;
+    
+    if (hd < *minHD)
+        *minHD = hd;
+    if (hd > *maxHD)
+        *maxHD = hd;
+    
+    findMinMaxHD(root->leftChild, minHD, maxHD, hd - 1);
+    findMinMaxHD(root->rightChild, minHD, maxHD, hd + 1);
+}
+
+// Function to print the AVL tree vertically
+void printVertical(struct treeNode* root, int h, int hd) {
+    if (root == NULL)
+        return;
+    
+    if (h == hd) {
+        printf("%d ", root->value);
+    }
+    else {
+        printf("  ");
+    }
+    
+    printVertical(root->leftChild, h, hd - 1);
+    printVertical(root->rightChild, h, hd + 1);
+}
+
+// Function to print the AVL tree vertically (wrapper function)
+void printVerticalTree(struct treeNode *root) {
+    if (root == NULL)
+        return;
+    
+    int minHD = 0, maxHD = 0;
+    
+    // Find the minimum and maximum horizontal distance (hd)
+    findMinMaxHD(root, &minHD, &maxHD, 0);
+    
+    // Print the tree for each horizontal distance
+    for (int hd = minHD; hd <= maxHD; hd++) {
+        printVertical(root, hd, 0);
+        printf("\n");
+    }
+}
 
 int main() {
-    avlTree* tree = (avlTree*)malloc(sizeof(avlTree));
-    bool all_tests_passed = true;
+    // Create an empty AVL tree
+    avlTree* avl = (avlTree*)malloc(sizeof(avlTree));
 
-    // Test 1: Insertion and balancing test
-    int insert_values[] = {5, 3, 8, 1, 4, 7, 9, 2, 6};
-    for (int i = 0; i < sizeof(insert_values) / sizeof(insert_values[0]); i++) {
-        tree->root = insert(insert_values[i], tree->root);
-        printf("Inserting %d: In-order: ", insert_values[i]);
-        inOrder(tree->root);
-        printf("\n");
-
-        // Check if the tree is balanced after each insertion
-        if (!isAVLbalanced(tree->root)) {
-            all_tests_passed = false;
-            printf("Test 1: Balancing test failed after inserting %d.\n", insert_values[i]);
-        }
+    // Insert 50 random elements into the AVL tree
+    for (int i = 1; i <= 50; i++) {
+        avl->root = insert(i, avl->root);
+        //printf("For this insertion: %d\n", i);
+        //inOrder(avl->root);
     }
-
-    // Test 2: Search test
-    int search_values[] = {4, 6};
-    for (int i = 0; i < sizeof(search_values) / sizeof(search_values[0]); i++) {
-        bool is_present = contains(search_values[i], tree->root);
-        if (is_present) {
-            printf("%d is present in the tree.\n", search_values[i]);
-        } else {
-            all_tests_passed = false;
-            printf("%d is not present in the tree.\n", search_values[i]);
-        }
-    }
-
-    // Test 3: Deletion and balancing test
-    int delete_values[] = {3, 8};
-    for (int i = 0; i < sizeof(delete_values) / sizeof(delete_values[0]); i++) {
-        tree->root = delete(delete_values[i], tree->root);
-        printf("Deleting %d: In-order: ", delete_values[i]);
-        inOrder(tree->root);
-        printf("\n");
-
-        // Check if the tree is balanced after each deletion
-        if (!isAVLbalanced(tree->root)) {
-            all_tests_passed = false;
-            printf("Test 3: Balancing test failed after deleting %d.\n", delete_values[i]);
-        }
-    }
-
-    // Test 4: Complex test - Delete the root
-    int root_value = 5;
-    tree->root = delete(root_value, tree->root);
-    printf("Deleting the root (%d): In-order: ", root_value);
-    inOrder(tree->root);
+    //printVerticalTree(avl->root);
+    printf("After insertion: ");
+    preOrder(avl->root);
+    printf("\n");
+    inOrder(avl->root);
     printf("\n");
 
-    // Check if the tree is balanced after the root deletion
-    if (!isAVLbalanced(tree->root)) {
-        all_tests_passed = false;
-        printf("Test 4: Balancing test failed after deleting the root.\n");
-    }
-
-    if (all_tests_passed) {
-        printf("All test cases passed.\n");
+    // Check if the tree is balanced
+    if (isBalanced(avl->root)) {
+        printf("Tree is balanced after insertions\n");
     } else {
-        printf("Some test cases failed.\n");
+        printf("Tree is not balanced after insertions\n");
     }
 
+    // Check if the 'contains' method works for elements in the tree
+    for (int i = 1; i <= 50; i++) {
+        if (contains(i, avl->root)) {
+            printf("Tree contains %d\n", i);
+        } else {
+            printf("Tree does not contain %d\n", i);
+        }
+    }
+
+    // Check if the 'contains' method correctly returns false for elements not in the tree
+    for (int i = 51; i <= 100; i++) {
+        if (!contains(i, avl->root)) {
+            printf("Tree does not contain %d\n", i);
+        } else {
+            printf("Tree incorrectly contains %d\n", i);
+        }
+    }
+
+    // Delete a few elements and ensure the tree remains balanced
+    int elementsToDelete[] = {7, 15, 20, 30};
+    for (int i = 0; i < sizeof(elementsToDelete) / sizeof(elementsToDelete[0]); i++) {
+        avl->root = delete(elementsToDelete[i], avl->root);
+        if (isBalanced(avl->root)) {
+            printf("Tree is balanced after deleting %d\n", elementsToDelete[i]);
+        } else {
+            printf("Tree is not balanced after deleting %d\n", elementsToDelete[i]);
+        }
+    }
+
+    // Check that the deleted elements are no longer in the tree
+    for (int i = 0; i < sizeof(elementsToDelete) / sizeof(elementsToDelete[0]); i++) {
+        if (!contains( elementsToDelete[i], avl->root)) {
+            printf("Tree does not contain %d after deletion\n", elementsToDelete[i]);
+        } else {
+            printf("Tree still contains %d after deletion\n", elementsToDelete[i]);
+        }
+    }
+
+    // Check that the remaining elements are still in the tree
+    for (int i = 1; i <= 50; i++) {
+        if (i != 7 && i != 15 && i != 20 && i != 30) {
+            if (contains(i, avl->root)) {
+                printf("Tree contains %d\n", i);
+            } else {
+                printf("Tree does not contain %d\n", i);
+            }
+        }
+    }
+    printf("After deletion: ");
+    preOrder(avl->root);
+    printf("\n");
+    inOrder(avl->root);
+    printf("\n");
+
+    free(avl);
     return 0;
 }
-
 
 
 
