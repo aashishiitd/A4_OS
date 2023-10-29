@@ -318,25 +318,25 @@ int main() {
 
     //Now make threads for all above commands!
     //We need to make function pointers for each of insert, 
-    pthread_t thread_id[MAXTHREADS]; // Thread identifier
+    // pthread_t thread_id[MAXTHREADS]; // Thread identifier
     
-    for(int i =0; i<lineCount; i++){
-        // Create a new thread and pass the argument
-        //Chnage the arguments and function pointers after making them
-        if(commandArray[i] == 1 ){
-            pthread_create(&thread_id[i], NULL, insert, &commandValue[i]);
-        }
-        else if(commandArray[i] == 2 ){
-            pthread_create(&thread_id[i], NULL, delete, &commandValue[i]);
-        }
-        else if(commandArray[i] == 3 ){
-            pthread_create(&thread_id[i], NULL, contains, &commandValue[i]);
-        }
-        else if(commandArray[i] == 4 ){
-            pthread_create(&thread_id[i], NULL, inOrder, NULL);
-        }
+    // for(int i =0; i<lineCount; i++){
+    //     // Create a new thread and pass the argument
+    //     //Chnage the arguments and function pointers after making them
+    //     if(commandArray[i] == 1 ){
+    //         pthread_create(&thread_id[i], NULL, insert, &commandValue[i]);
+    //     }
+    //     else if(commandArray[i] == 2 ){
+    //         pthread_create(&thread_id[i], NULL, delete, &commandValue[i]);
+    //     }
+    //     else if(commandArray[i] == 3 ){
+    //         pthread_create(&thread_id[i], NULL, contains, &commandValue[i]);
+    //     }
+    //     else if(commandArray[i] == 4 ){
+    //         pthread_create(&thread_id[i], NULL, inOrder, NULL);
+    //     }
     
-    }
+    // }
         //Need to Wait for all the threads to finish
         //Use pthread_join to do this!
         
